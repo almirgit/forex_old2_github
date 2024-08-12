@@ -1,0 +1,181 @@
+#image: instrumentisto/rsync-ssh:latest
+image: ubuntu:22.04
+
+include: 
+  - local: '.gitlab-ci-variables.yml'
+
+
+stages:
+  - registry
+  - config
+  - deploy
+
+create_build_image:
+  image: docker:20.10.16-dind
+  stage: registry
+  tags:
+    - shared-runner-01
+    - shared-runner-02
+  variables:
+    #IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -f dockerfiles/Dockerfile-debian-build-deploy-image -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+  only:
+    - registry      
+    - registry-debian-ssh-rsync
+
+
+general_config:
+  stage: config
+  tags:
+    - shared-runner-01
+    - shared-runner-02
+  only:
+    - master
+  script:
+    - bash ./general_config.sh
+
+
+proxy_build_and_deploy:
+  stage: deploy
+  tags:
+    - shared-runner-01
+    - shared-runner-02
+  only:
+    - master
+  script:
+    - bash ./proxy_build_and_deploy.sh
+ 
+      
+      #build_container_get_forex_realtime_data:
+      #  stage: deploy
+      #  only:
+      #    - master
+      #  script:
+      #    - bash ./do_build.sh
+ 
+
+
+
+
+    ### OLD:      
+
+    ##deploy_database:
+    ##  stage: deploy
+    ##  only:
+    ##    - master
+    ##  script:
+    ##    - ./flyway.sh info
+    ##    - ./flyway.sh migrate
+    #      
+    #
+    #build_container_proxy_list_scraper:
+    #  stage: build
+    #  only:
+    #    - Alarm-v4
+    #    - docker
+    #    - master
+    #  script:
+    #    #- find
+    #    #- echo "CI_REGISTRY:"
+    #    #- echo $CI_REGISTRY
+    #    #- echo "CI_REGISTRY_USER:"
+    #    #- echo $CI_REGISTRY_USER
+    #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    #    - cd python
+    #    - docker build -f dockerfiles/${proxylistscraper_dockerfile} -t $CI_REGISTRY/almir/forex-python/${proxylistscraper_imagename}:${proxylistscraper_imageversion} .
+    #    - docker push $CI_REGISTRY/almir/forex-python/${proxylistscraper_imagename}:${proxylistscraper_imageversion}
+    #
+    #
+    #build_container_proxies_check:
+    #  stage: build
+    #  only:
+    #    - Alarm-v4
+    #    - docker
+    #    - master
+    #  script:
+    #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    #    - cd python
+    #    - docker build -f dockerfiles/${checkproxies_dockerfile} -t $CI_REGISTRY/almir/forex-python/${checkproxies_imagename}:${checkproxies_imageversion} .
+    #    - docker push $CI_REGISTRY/almir/forex-python/${checkproxies_imagename}:${checkproxies_imageversion}
+    #
+    #      
+    #deploy_proxy_list_loader:
+    #  stage: deploy
+    #  variables:
+    #    #targethostname: "mos52.dakataki.de"
+    #    targets: almir@sof1.kodera.hr
+    #  only:
+    #    - Alarm-v4
+    #    - master
+    #  script:
+    #    - |
+    #      for target in $targets 
+    #      do
+    #        echo Terget: ${target}
+    #        ssh -o ProxyCommand="ssh -W %h:%p ${jumphost1}" -o StrictHostKeyChecking=no ${target} \
+    #            "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && docker pull $CI_REGISTRY/almir/forex-python/${proxylistscraper_imagename}:${proxylistscraper_imageversion}"
+    #        ssh -o ProxyCommand="ssh -W %h:%p ${jumphost1}" -o StrictHostKeyChecking=no ${target} \
+    #            "mkdir -p ${proxylistscraper_datadir} && (docker stop ${proxylistscraper_containername} || true && docker rm ${proxylistscraper_containername} || true) && mkdir -p ${proxylistscraper_datadir} && docker run -d --name ${proxylistscraper_containername} --mount type=bind,source=${proxylistscraper_datadir},target=/data/app $CI_REGISTRY/almir/forex-python/${proxylistscraper_imagename}:${proxylistscraper_imageversion}"
+    #      done
+    #
+    #deploy_proxies_check:
+    #  stage: deploy
+    #  variables:
+    #    targets: almir@sof1.kodera.hr
+    #  only:
+    #    - Alarm-v4
+    #    - master
+    #  script:
+    #    - |
+    #      for target in $targets 
+    #      do
+    #        echo Terget: ${target}
+    #        ssh -o ProxyCommand="ssh -W %h:%p ${jumphost1}" -o StrictHostKeyChecking=no ${target} \
+    #            "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && docker pull $CI_REGISTRY/almir/forex-python/${checkproxies_imagename}:${checkproxies_imageversion}"
+    #        ssh -o ProxyCommand="ssh -W %h:%p ${jumphost1}" -o StrictHostKeyChecking=no ${target} \
+    #            "mkdir -p ${checkproxies_datadir} && (docker stop ${checkproxies_containername} || true && docker rm ${checkproxies_containername} || true) && mkdir -p ${checkproxies_datadir} && docker run -d --name ${checkproxies_containername} --mount type=bind,source=${checkproxies_datadir},target=/data/app $CI_REGISTRY/almir/forex-python/${checkproxies_imagename}:${checkproxies_imageversion}"
+    #      done
+    #
+    #
+    #        
+    #build_container_get_forex_chart_data:
+    #  stage: build
+    #  only:
+    #    - master
+    #  script:
+    #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    #    - cd python
+    #    - docker build -f dockerfiles/${getforexchartdata_dockerfile} -t $CI_REGISTRY/almir/forex-python/${getforexchartdata_imagename}:${getforexchartdata_imageversion} .
+    #    - docker push $CI_REGISTRY/almir/forex-python/${getforexchartdata_imagename}:${getforexchartdata_imageversion}
+    #
+    #forex_chart_data_deploy_all_dev:
+    #  stage: deploy
+    #  only:
+    #    - master
+    #  script:
+    #    - bash .gitlab-ci-deploy-chart-loader.sh $CI_REGISTRY $CI_REGISTRY_USER $CI_REGISTRY_PASSWORD $bastionusername $bastionhostname $targetusername $getforexchartdata_imagename $getforexchartdata_imageversion $getforexchartdata_containername $getforexchartdata_datadir $getforexchartdata_containername_conf
+    #
+    #
+    #build_container_get_forex_realtime_data:
+    #  stage: build
+    #  only:
+    #    - master
+    #  script:
+    #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    #    - cd python
+    #    - docker build -f dockerfiles/${getfxrealtimedata_dockerfile} -t $CI_REGISTRY/almir/forex-python/${getfxrealtimedata_imagename}:${getfxrealtimedata_imageversion} .
+    #    - docker push $CI_REGISTRY/almir/forex-python/${getfxrealtimedata_imagename}:${getfxrealtimedata_imageversion}
+    #
+    #forex_realtime_data_deploy_all_dev:
+    #  stage: deploy
+    #  only:
+    #    - master
+    #  script:
+    #    - bash .gitlab-ci-deploy-realtime-loader.sh $CI_REGISTRY $CI_REGISTRY_USER $CI_REGISTRY_PASSWORD $bastionusername $bastionhostname $targetusername $getfxrealtimedata_imagename $getfxrealtimedata_imageversion $getfxrealtimedata_containername $getfxrealtimedata_datadir $getfxrealtimedata_containername_conf
+
+
+

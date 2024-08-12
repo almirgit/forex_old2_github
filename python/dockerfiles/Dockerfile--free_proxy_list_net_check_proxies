@@ -1,0 +1,20 @@
+# As Scrapy runs on Python, I choose the official Python 3 Docker image.
+FROM python:3
+
+# Set the working directory to /usr/src/app.
+WORKDIR /usr/src/app
+
+RUN apt-get update && apt-get -y install cron dos2unix vim swaks
+RUN /usr/local/bin/python -m pip install --upgrade pip
+RUN pip3 install sentry_sdk psycopg2 PyYAML requests
+
+# Create output dir
+RUN mkdir -p /data/app
+
+# Copy the project source code from the local host to the filesystem of the container at the working directory.
+ADD modules modules
+ADD proxies-check proxies-check
+
+# Command
+CMD ./proxies-check/main.py -s /data2/proxy_loader_secret.yml
+

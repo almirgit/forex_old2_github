@@ -1,0 +1,31 @@
+# As Scrapy runs on Python, I choose the official Python 3 Docker image.
+FROM python:3
+#FROM debian:11
+
+# Set the working directory to /usr/src/app.
+WORKDIR /usr/src/app
+
+#RUN apt-get update && apt-get -y install cron clang dos2unix gcc python3-pip libpq-dev vim swaks
+RUN apt-get update && apt-get -y install cron dos2unix vim swaks
+RUN /usr/local/bin/python -m pip install --upgrade pip
+RUN pip3 install scrapy sentry_sdk psycopg2 PyYAML 
+
+
+# Copy the project source code from the local host to the filesystem of the container at the working directory.
+#COPY modules .
+#COPY get-proxies .
+#COPY get-proxies-scrapy .
+ADD modules modules
+ADD get-proxies get-proxies
+ADD get-proxies-scrapy get-proxies-scrapy
+
+# Create output dir
+# https://docs.docker.com/storage/volumes/#start-a-container-with-a-volume
+#RUN mkdir -p /data2
+#VOLUME /data2
+
+# Apply final command
+#CMD ["./get-proxies/main.py -c /data/app/secret.yml"]
+# https://stackoverflow.com/a/27615958 - bash exapnsion not present if we use "" !!
+#CMD ls -al /data2
+CMD ./get-proxies/main.py -s /data2/proxy_loader_secret.yml

@@ -1,0 +1,19 @@
+FROM debian:11
+
+# Set the working directory to /usr/src/app.
+WORKDIR /usr/src/app
+
+#RUN apt-get update && apt-get -y install cron clang dos2unix gcc python3-pip libpq-dev vim swaks
+RUN apt-get update && apt-get -y install cron vim swaks rsync openssh-client
+
+# Create output dir
+#RUN mkdir -p /data/log
+
+## Copy the file from the local host to the filesystem of the container at the working directory.
+#COPY requirements.txt ./
+
+# Copy the project source code from the local host to the filesystem of the container at the working directory.
+#COPY . .
+
+# Run
+CMD ["bash"]

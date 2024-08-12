@@ -1,0 +1,27 @@
+variables:
+  #fullreponame: git@gitlab.kodera.hr:almir/forex-python.git
+  #reponame: forex-python
+  #branch: "Alarm-v3"
+  targetusername: "almir"
+  loaderdatadir: "~/forex-containerdata"
+  latestimageversion: "0.7"
+
+  checkproxies_dockerfile: "Dockerfile-proxies-check"
+  checkproxies_datadir: "/tmp/check-proxies" # tmp because soon we won't need permanent dir
+  checkproxies_imagename: "check-proxies"
+  checkproxies_imageversion: "0.1"
+  checkproxies_containername: "free_proxy_list_net_check_proxies"
+  
+  getforexchartdata_dockerfile: "Dockerfile-get-forex-chart-data"
+  getforexchartdata_datadir: "/tmp/get-forex-chart-data" # tmp because soon we won't need permanent dir
+  getforexchartdata_imagename: "get-forex-chart-data"
+  getforexchartdata_imageversion: "0.2"
+  getforexchartdata_containername: "get_forex_chart_data"
+  getforexchartdata_containername_conf: "~/get_forex_chart_data.conf"
+
+
+# New conf:
+  jumphost1: "bastion4@sof1.kodera.hr"
+
+
+

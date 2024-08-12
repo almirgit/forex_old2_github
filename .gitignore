@@ -1,0 +1,15 @@
+activate
+config.yml
+db-migrations/drop.sql
+f.txt
+loadername
+nohup.out
+old/
+pgdump/
+*secret*
+tmp-*
+*.bak.*
+*.202?*
+*.old
+*.pyc
+*.swp
